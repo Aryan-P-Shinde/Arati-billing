@@ -1,0 +1,16 @@
+:root {
+  color-scheme: light;
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  min-height: 100%;
+  background: #F4F5F7;
+  color: #1B1F27;
+}
+
+h1, h2, h3, p { margin: 0; }
