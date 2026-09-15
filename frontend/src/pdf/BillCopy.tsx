@@ -193,7 +193,7 @@ export function BillCopy({
                 <Text>{data.addAmount.toFixed(2)}</Text>
               </View>
               <View style={styles.totalsLine}>
-                <Text>Less ({data.reductionPercent}%)</Text>
+                <Text>Less</Text>
                 <Text>{data.lessAmount.toFixed(2)}</Text>
               </View>
               <View style={styles.netLine}>

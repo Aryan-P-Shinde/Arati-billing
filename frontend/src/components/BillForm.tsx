@@ -19,7 +19,7 @@ export function BillForm() {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [items, setItems] = useState<LineItem[]>([]);
   const [addAmount, setAddAmount] = useState("0");
-  const [reductionPercent, setReductionPercent] = useState("0");
+  const [lessAmount, setLessAmount] = useState("0");
   const [remark, setRemark] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedBillNumber, setSavedBillNumber] = useState<string | null>(null);
@@ -27,8 +27,8 @@ export function BillForm() {
   const [error, setError] = useState<string | null>(null);
 
   const totals = useMemo(
-    () => computeTotals(items, Number(addAmount) || 0, Number(reductionPercent) || 0),
-    [items, addAmount, reductionPercent]
+    () => computeTotals(items, Number(addAmount) || 0, Number(lessAmount) || 0),
+    [items, addAmount, lessAmount]
   );
 
   function switchCompany(next: Company) {
@@ -79,7 +79,7 @@ export function BillForm() {
         company,
         items,
         add_amount: Number(addAmount) || 0,
-        reduction_percent: Number(reductionPercent) || 0,
+        less_amount: Number(lessAmount) || 0,
         remark: remark.trim() || undefined,
       });
       setSavedBillNumber(billNumber);
@@ -99,14 +99,13 @@ export function BillForm() {
         })),
         grossAmount: totals.gross_amount,
         addAmount: Number(addAmount) || 0,
-        reductionPercent: Number(reductionPercent) || 0,
         lessAmount: totals.less_amount,
         netAmount: totals.net_amount,
         remark: remark.trim() || null,
       });
       setItems([]);
       setAddAmount("0");
-      setReductionPercent("0");
+      setLessAmount("0");
       setRemark("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save bill");
@@ -216,12 +215,12 @@ export function BillForm() {
               />
             </label>
             <label className="inline">
-              Reduction (%)
+              Reduction (₹)
               <input
                 type="number"
                 inputMode="decimal"
-                value={reductionPercent}
-                onChange={(e) => setReductionPercent(e.target.value)}
+                value={lessAmount}
+                onChange={(e) => setLessAmount(e.target.value)}
               />
             </label>
             <div className="totals-summary">

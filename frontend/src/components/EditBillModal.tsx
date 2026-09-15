@@ -36,15 +36,15 @@ export function EditBillModal({
 }) {
   const [items, setItems] = useState<LineItem[]>(() => itemsFromBillItems(billItems));
   const [addAmount, setAddAmount] = useState(String(bill.add_amount));
-  const [reductionPercent, setReductionPercent] = useState(String(bill.reduction_percent));
+  const [lessAmount, setLessAmount] = useState(String(bill.less_amount));
   const [remark, setRemark] = useState(bill.remark ?? "");
   const [saving, setSaving] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const totals = useMemo(
-    () => computeTotals(items, Number(addAmount) || 0, Number(reductionPercent) || 0),
-    [items, addAmount, reductionPercent]
+    () => computeTotals(items, Number(addAmount) || 0, Number(lessAmount) || 0),
+    [items, addAmount, lessAmount]
   );
 
   function addProductAsLine(product: Product) {
@@ -81,7 +81,7 @@ export function EditBillModal({
       await updateBill(bill.id, {
         items,
         add_amount: Number(addAmount) || 0,
-        reduction_percent: Number(reductionPercent) || 0,
+        less_amount: Number(lessAmount) || 0,
         remark: remark.trim() || undefined,
       });
       onSaved();
@@ -176,12 +176,12 @@ export function EditBillModal({
           />
         </label>
         <label className="inline">
-          Reduction (%)
+          Reduction (₹)
           <input
             type="number"
             inputMode="decimal"
-            value={reductionPercent}
-            onChange={(e) => setReductionPercent(e.target.value)}
+            value={lessAmount}
+            onChange={(e) => setLessAmount(e.target.value)}
           />
         </label>
         <div className="totals-summary">

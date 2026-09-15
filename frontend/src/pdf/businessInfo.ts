@@ -17,5 +17,5 @@ export const BUSINESS_INFO = {
   // varies by linked bank/app. Verify the real UPI ID before this QR is
   // used on any invoice that's actually handed to a customer — a wrong
   // VPA sends the payment nowhere useful.
-  upiId: "7745845480@axl",
+  upiId: "7745845480@ybl",
 };

@@ -46,7 +46,7 @@ export interface CreateBillInput {
   bill_date?: string; // defaults to today
   items: DraftBillItemInput[];
   add_amount?: number;
-  reduction_percent?: number;
+  less_amount?: number;
   remark?: string;
 }
 
@@ -64,10 +64,9 @@ export interface CreatedBill {
 export function computeTotals(
   items: Pick<DraftBillItemInput, "quantity" | "wholesale_rate">[],
   add_amount: number,
-  reduction_percent: number
+  less_amount: number
 ): BillTotals {
   const gross_amount = items.reduce((sum, i) => sum + i.quantity * i.wholesale_rate, 0);
-  const less_amount = (gross_amount * reduction_percent) / 100;
   const net_amount = gross_amount + add_amount - less_amount;
   return { gross_amount, less_amount, net_amount };
 }
@@ -87,11 +86,11 @@ export async function createBill(input: CreateBillInput): Promise<CreatedBill> {
   }
 
   const add_amount = input.add_amount ?? 0;
-  const reduction_percent = input.reduction_percent ?? 0;
+  const less_amount_input = input.less_amount ?? 0;
   const { gross_amount, less_amount, net_amount } = computeTotals(
     input.items,
     add_amount,
-    reduction_percent
+    less_amount_input
   );
   const billDate = input.bill_date ?? new Date().toISOString().slice(0, 10);
 
@@ -118,7 +117,7 @@ export async function createBill(input: CreateBillInput): Promise<CreatedBill> {
     const billResult = await client.query(
       `INSERT INTO bills
         (bill_number, company, bill_date, doctor_id, gross_amount, add_amount, reduction_percent, less_amount, net_amount, remark, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'draft')
+       VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, $9, 'draft')
        RETURNING id`,
       [
         billNumber,
@@ -127,7 +126,6 @@ export async function createBill(input: CreateBillInput): Promise<CreatedBill> {
         input.doctor_id,
         gross_amount,
         add_amount,
-        reduction_percent,
         less_amount,
         net_amount,
         input.remark ?? null,
@@ -162,7 +160,7 @@ export async function createBill(input: CreateBillInput): Promise<CreatedBill> {
 export interface UpdateBillInput {
   items: DraftBillItemInput[];
   add_amount?: number;
-  reduction_percent?: number;
+  less_amount?: number;
   remark?: string;
 }
 
@@ -179,11 +177,11 @@ export async function updateBill(billId: number, input: UpdateBillInput): Promis
     throw new Error("A bill needs at least one item");
   }
   const add_amount = input.add_amount ?? 0;
-  const reduction_percent = input.reduction_percent ?? 0;
+  const less_amount_input = input.less_amount ?? 0;
   const { gross_amount, less_amount, net_amount } = computeTotals(
     input.items,
     add_amount,
-    reduction_percent
+    less_amount_input
   );
 
   await transaction(async (client) => {
@@ -211,9 +209,9 @@ export async function updateBill(billId: number, input: UpdateBillInput): Promis
 
     await client.query(
       `UPDATE bills
-       SET gross_amount = $1, add_amount = $2, reduction_percent = $3, less_amount = $4, net_amount = $5, remark = $6, updated_at = NOW()
-       WHERE id = $7`,
-      [gross_amount, add_amount, reduction_percent, less_amount, net_amount, input.remark ?? null, billId]
+       SET gross_amount = $1, add_amount = $2, less_amount = $3, net_amount = $4, remark = $5, updated_at = NOW()
+       WHERE id = $6`,
+      [gross_amount, add_amount, less_amount, net_amount, input.remark ?? null, billId]
     );
   });
 }

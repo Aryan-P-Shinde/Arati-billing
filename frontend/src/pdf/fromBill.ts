@@ -19,7 +19,6 @@ export function billToPrintData(bill: Bill, doctor: Doctor, items: BillItem[]): 
     })),
     grossAmount: bill.gross_amount,
     addAmount: bill.add_amount,
-    reductionPercent: bill.reduction_percent,
     lessAmount: bill.less_amount,
     netAmount: bill.net_amount,
     remark: bill.remark,

@@ -16,7 +16,6 @@ export interface PrintBillData {
   items: PrintBillItem[];
   grossAmount: number;
   addAmount: number;
-  reductionPercent: number;
   lessAmount: number;
   netAmount: number;
   remark: string | null;

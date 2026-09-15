@@ -46,14 +46,14 @@ export interface CreateBillInput {
   bill_date?: string;
   items: DraftBillItemInput[];
   add_amount?: number;
-  reduction_percent?: number;
+  less_amount?: number;
   remark?: string;
 }
 
 export interface UpdateBillInput {
   items: DraftBillItemInput[];
   add_amount?: number;
-  reduction_percent?: number;
+  less_amount?: number;
   remark?: string;
 }
 
@@ -69,18 +69,22 @@ export interface CreatedBill {
 }
 
 /**
- * Kept as a pure client-side function, unchanged — BillForm calls this on
- * every keystroke to show live totals before the bill is ever saved, so
- * it can't be a network round trip. The server recomputes the same thing
- * itself when the bill is actually created/updated, as the source of truth.
+ * Kept as a pure client-side function, unchanged in shape — BillForm calls
+ * this on every keystroke to show live totals before the bill is ever
+ * saved, so it can't be a network round trip. The server recomputes the
+ * same thing itself when the bill is actually created/updated, as the
+ * source of truth.
+ *
+ * Reduction is a direct rupee amount, not a percentage — your father's
+ * discounts are picked as an amount (often specifically to round the
+ * final total), not a fixed percent of the bill.
  */
 export function computeTotals(
   items: Pick<DraftBillItemInput, "quantity" | "wholesale_rate">[],
   add_amount: number,
-  reduction_percent: number
+  less_amount: number
 ): BillTotals {
   const gross_amount = items.reduce((sum, i) => sum + i.quantity * i.wholesale_rate, 0);
-  const less_amount = (gross_amount * reduction_percent) / 100;
   const net_amount = gross_amount + add_amount - less_amount;
   return { gross_amount, less_amount, net_amount };
 }
