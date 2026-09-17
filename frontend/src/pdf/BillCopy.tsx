@@ -10,29 +10,31 @@ import type { PrintBillData, PrintBillItem } from "./types";
 // than shrinking the box.
 const COPY_HEIGHT = 400;
 
+const RULE = "0.6pt solid #000";
+
 const styles = StyleSheet.create({
   copy: {
     height: COPY_HEIGHT,
     flexDirection: "column",
     border: "1pt solid #000",
     padding: 10,
-    fontSize: 8,
+    fontSize: 9,
     fontFamily: "Helvetica",
     color: "#000",
   },
   header: { alignItems: "center", marginBottom: 4 },
-  businessName: { fontSize: 13, fontFamily: "Helvetica-Bold" },
-  businessLine: { fontSize: 7.5 },
+  businessName: { fontSize: 17, fontFamily: "Helvetica-Bold" },
+  businessLine: { fontSize: 8.5 },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderTop: "0.5pt solid #000",
-    borderBottom: "0.5pt solid #000",
+    borderTop: RULE,
+    borderBottom: RULE,
     paddingVertical: 2,
     marginTop: 4,
   },
   doctorRow: { marginTop: 3, marginBottom: 3 },
-  doctorName: { fontSize: 9, fontFamily: "Helvetica-Bold" },
+  doctorName: { fontSize: 10.5, fontFamily: "Helvetica-Bold" },
   // flexGrow fills whatever vertical space is left after the item rows,
   // so a 1-item bill still occupies the full fixed height — the extra
   // space just sits blank beneath the last row, same as pre-printed
@@ -40,60 +42,76 @@ const styles = StyleSheet.create({
   table: { marginTop: 2, flexGrow: 1 },
   tableHeaderRow: {
     flexDirection: "row",
-    borderTop: "0.5pt solid #000",
-    borderBottom: "0.5pt solid #000",
+    borderTop: RULE,
+    borderBottom: RULE,
     fontFamily: "Helvetica-Bold",
-    paddingVertical: 2,
+    paddingVertical: 3,
   },
   tableRow: {
     flexDirection: "row",
-    borderBottom: "0.3pt solid #999",
-    paddingVertical: 1.5,
+    borderBottom: "0.4pt solid #999",
+    paddingVertical: 2.5,
   },
-  colNo: { width: "6%" },
-  colName: { width: "34%" },
-  colPack: { width: "14%" },
-  colQty: { width: "10%", textAlign: "right" },
-  colMrp: { width: "12%", textAlign: "right" },
-  colRate: { width: "12%", textAlign: "right" },
-  colTotal: { width: "12%", textAlign: "right" },
-  footerRow: { flexDirection: "row", marginTop: 4 },
-  remarkBlock: { width: "60%" },
-  totalsBlock: { width: "40%" },
-  totalsLine: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 1 },
+  // Every column but the last carries a right-hand rule, so header and
+  // body rows share the same vertical divider lines — a properly ruled
+  // table rather than just spaced-out text.
+  colNo: { width: "6%", paddingRight: 3, borderRight: RULE },
+  colName: { width: "32%", paddingHorizontal: 4, borderRight: RULE },
+  colPack: { width: "14%", paddingHorizontal: 4, borderRight: RULE },
+  colQty: { width: "9%", textAlign: "right", paddingHorizontal: 4, borderRight: RULE },
+  colMrp: { width: "12%", textAlign: "right", paddingHorizontal: 4, borderRight: RULE },
+  colRate: { width: "12%", textAlign: "right", paddingHorizontal: 4, borderRight: RULE },
+  colTotal: { width: "15%", textAlign: "right", paddingLeft: 4 },
+  footerRow: {
+    flexDirection: "row",
+    marginTop: 6,
+    borderTop: RULE,
+    paddingTop: 6,
+  },
+  remarkBlock: { width: "58%", paddingRight: 10 },
+  // The left-hand rule here is the vertical division between the remark
+  // block and the totals block, sitting right against the totals side.
+  totalsBlock: { width: "42%", borderLeft: RULE, paddingLeft: 10 },
+  totalsLine: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 1.5 },
   netLine: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderTop: "0.5pt solid #000",
-    paddingTop: 2,
+    borderTop: RULE,
+    paddingTop: 3,
     marginTop: 2,
     fontFamily: "Helvetica-Bold",
-    fontSize: 9,
+    fontSize: 11,
   },
-  wordsLine: { fontSize: 7, marginTop: 3, fontStyle: "italic" },
+  wordsLine: { fontSize: 8, marginTop: 3, fontStyle: "italic" },
   bottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
     marginTop: 8,
-    borderTop: "0.5pt solid #000",
-    paddingTop: 4,
+    borderTop: RULE,
+    paddingTop: 5,
   },
-  bankBlock: { width: "38%" },
-  bankTitle: { fontSize: 7, fontFamily: "Helvetica-Bold", marginBottom: 1 },
-  bankLine: { fontSize: 6.5, color: "#333" },
-  qrBlock: { width: "20%", alignItems: "center" },
-  qrImage: { width: 46, height: 46 },
-  qrLabel: { fontSize: 5.5, marginTop: 1, color: "#333" },
-  signBlock: { width: "38%" },
+  // Bank details + QR are grouped together so they sit tightly side by
+  // side, instead of being spread apart by the row's own justification.
+  bankAndQr: { flexDirection: "row", alignItems: "flex-end", width: "58%" },
+  bankBlock: {},
+  bankTitle: { fontSize: 10.5, fontFamily: "Helvetica-Bold", marginBottom: 2 },
+  bankLine: { fontSize: 9, color: "#222", lineHeight: 1.35 },
+  qrBlock: { alignItems: "center", marginLeft: 10 },
+  qrImage: { width: 50, height: 50 },
+  qrLabel: { fontSize: 6.5, marginTop: 1, color: "#333" },
+  // Two signature boxes side by side instead of stacked — each gets its
+  // own rule-and-label directly beneath it.
+  signGroup: { flexDirection: "row", width: "40%", justifyContent: "space-between" },
+  signBoxWrap: { width: "48%" },
   signBox: {
     textAlign: "center",
-    borderTop: "0.5pt solid #000",
-    paddingTop: 2,
-    marginTop: 8,
-    fontSize: 7,
+    borderTop: RULE,
+    paddingTop: 3,
+    marginTop: 10,
+    fontSize: 8,
   },
-  continuedNote: { fontSize: 7, fontStyle: "italic", color: "#555", textAlign: "center" },
+  continuedNote: { fontSize: 7.5, fontStyle: "italic", color: "#555", textAlign: "center" },
 });
 
 function formatDate(iso: string): string {
@@ -204,24 +222,30 @@ export function BillCopy({
           </View>
 
           <View style={styles.bottomRow}>
-            <View style={styles.bankBlock}>
-              <Text style={styles.bankTitle}>Bank Details</Text>
-              <Text style={styles.bankLine}>{BUSINESS_INFO.bank.name}</Text>
-              <Text style={styles.bankLine}>{BUSINESS_INFO.bank.branchAddress}</Text>
-              <Text style={styles.bankLine}>A/C: {BUSINESS_INFO.bank.accountNumber}</Text>
-              <Text style={styles.bankLine}>IFSC: {BUSINESS_INFO.bank.ifsc}</Text>
+            <View style={styles.bankAndQr}>
+              <View style={styles.bankBlock}>
+                <Text style={styles.bankTitle}>Bank Details</Text>
+                <Text style={styles.bankLine}>{BUSINESS_INFO.bank.name}</Text>
+                <Text style={styles.bankLine}>{BUSINESS_INFO.bank.branchAddress}</Text>
+                <Text style={styles.bankLine}>A/C: {BUSINESS_INFO.bank.accountNumber}</Text>
+                <Text style={styles.bankLine}>IFSC: {BUSINESS_INFO.bank.ifsc}</Text>
+              </View>
+
+              {qrDataUrl && (
+                <View style={styles.qrBlock}>
+                  <Image src={qrDataUrl} style={styles.qrImage} />
+                  <Text style={styles.qrLabel}>Pay using UPI</Text>
+                </View>
+              )}
             </View>
 
-            {qrDataUrl && (
-              <View style={styles.qrBlock}>
-                <Image src={qrDataUrl} style={styles.qrImage} />
-                <Text style={styles.qrLabel}>Pay using UPI</Text>
+            <View style={styles.signGroup}>
+              <View style={styles.signBoxWrap}>
+                <Text style={styles.signBox}>Customer Signature</Text>
               </View>
-            )}
-
-            <View style={styles.signBlock}>
-              <Text style={styles.signBox}>Customer Signature</Text>
-              <Text style={styles.signBox}>For {BUSINESS_INFO.name}</Text>
+              <View style={styles.signBoxWrap}>
+                <Text style={styles.signBox}>For {BUSINESS_INFO.name}</Text>
+              </View>
             </View>
           </View>
         </>
