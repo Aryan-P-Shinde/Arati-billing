@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS bills (
   net_amount          REAL NOT NULL DEFAULT 0,
   remark              TEXT,
   status              TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','finalized')),
+  payment_status      TEXT NOT NULL DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid','paid')),
   created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

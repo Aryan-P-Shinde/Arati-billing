@@ -1,9 +1,96 @@
 import { useEffect, useState } from "react";
-import { searchDoctors, countBillsForDoctor, deleteDoctor, type Doctor } from "../db/doctors";
-import { searchProducts, deleteProduct, type Product } from "../db/products";
+import {
+  searchDoctors,
+  countBillsForDoctor,
+  deleteDoctor,
+  deleteAllDoctors,
+  type Doctor,
+} from "../db/doctors";
+import { searchProducts, deleteProduct, deleteAllProducts, type Product } from "../db/products";
+import { deleteAllBills } from "../db/bills";
 import { COMPANY_LABELS, type Company } from "../lib/billNumber";
 
 const COMPANIES: Company[] = ["sharangdhar", "leadgen"];
+
+/**
+ * Shared "type DELETE to confirm" flow for wiping an entire category at
+ * once — same language/pattern as the Backup tab's "Reset app data", just
+ * scoped to one table instead of everything.
+ */
+function ClearAllSection({
+  label,
+  warning,
+  onClear,
+  onCleared,
+}: {
+  label: string;
+  warning: string;
+  onClear: () => Promise<void>;
+  onCleared: () => Promise<void> | void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  const [text, setText] = useState("");
+  const [clearing, setClearing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleConfirm() {
+    setClearing(true);
+    setError(null);
+    try {
+      await onClear();
+      setConfirming(false);
+      setText("");
+      await onCleared();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to clear.");
+    } finally {
+      setClearing(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      {!confirming ? (
+        <button className="link danger" onClick={() => setConfirming(true)}>
+          Clear all {label}...
+        </button>
+      ) : (
+        <div className="delete-confirm">
+          <p className="error">
+            {warning} Type <b>DELETE</b> below to confirm.
+          </p>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type DELETE to confirm"
+            style={{ marginBottom: 8 }}
+          />
+          {error && <p className="error">{error}</p>}
+          <div className="form-actions">
+            <button
+              className="secondary"
+              onClick={() => {
+                setConfirming(false);
+                setText("");
+                setError(null);
+              }}
+              disabled={clearing}
+            >
+              Cancel
+            </button>
+            <button
+              className="danger-btn"
+              onClick={handleConfirm}
+              disabled={clearing || text.trim() !== "DELETE"}
+            >
+              {clearing ? "Clearing..." : `Clear all ${label}`}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function DoctorsPanel() {
   const [term, setTerm] = useState("");
@@ -88,6 +175,12 @@ function DoctorsPanel() {
           ))}
         </ul>
       )}
+      <ClearAllSection
+        label="doctors"
+        warning="This permanently deletes every doctor. Blocked if any bills still exist — clear bills first if you need to wipe doctors too."
+        onClear={deleteAllDoctors}
+        onCleared={refresh}
+      />
     </div>
   );
 }
@@ -176,6 +269,34 @@ function ProductsPanel() {
           ))}
         </ul>
       )}
+      <ClearAllSection
+        label="products"
+        warning="This permanently deletes every product (in both companies' catalogs). Past bills keep their own snapshot of what was billed, so existing bill history is unaffected."
+        onClear={deleteAllProducts}
+        onCleared={refresh}
+      />
+    </div>
+  );
+}
+
+function BillsPanel() {
+  const [message, setMessage] = useState<string | null>(null);
+
+  return (
+    <div className="panel" style={{ gridColumn: "1 / -1" }}>
+      <div className="panel-title">Bills</div>
+      <p className="hint" style={{ marginBottom: 4 }}>
+        Individual bills are edited or deleted from the Bills tab. This clears every bill at once —
+        useful for wiping test data before going live. Bill numbering restarts from #1 for each
+        company afterwards.
+      </p>
+      {message && <p className="success">{message}</p>}
+      <ClearAllSection
+        label="bills"
+        warning="This permanently deletes every bill and its line items. Bill numbering restarts from #1 for each company."
+        onClear={deleteAllBills}
+        onCleared={() => setMessage("All bills cleared.")}
+      />
     </div>
   );
 }
@@ -185,6 +306,7 @@ export function ManageScreen() {
     <div className="workspace manage-workspace">
       <DoctorsPanel />
       <ProductsPanel />
+      <BillsPanel />
     </div>
   );
 }

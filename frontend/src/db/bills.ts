@@ -14,6 +14,7 @@ export interface Bill {
   net_amount: number;
   remark: string | null;
   status: "draft" | "finalized";
+  payment_status: "unpaid" | "paid";
   created_at: string;
   updated_at: string;
 }
@@ -118,4 +119,30 @@ export async function getBillItems(billId: number): Promise<BillItem[]> {
 export async function listBillsForDoctor(doctorId: number, limit = 20): Promise<Bill[]> {
   const params = new URLSearchParams({ limit: String(limit) });
   return apiFetch<Bill[]>(`/api/bills/by-doctor/${doctorId}?${params}`);
+}
+
+export interface BillWithDoctorName extends Bill {
+  doctor_name: string;
+}
+
+/**
+ * Every bill across every doctor, newest first, with the doctor's name
+ * joined in — powers the Ledger screen. Deliberately unbounded, so an
+ * old unpaid bill never silently drops off a "recent N" cutoff.
+ */
+export async function listAllBills(): Promise<BillWithDoctorName[]> {
+  return apiFetch<BillWithDoctorName[]>("/api/bills");
+}
+
+/** Marks a bill as paid or unpaid — the only thing the Ledger screen ever writes. */
+export async function setBillPaymentStatus(id: number, paymentStatus: "unpaid" | "paid"): Promise<void> {
+  await apiFetch<Bill>(`/api/bills/${id}/payment-status`, {
+    method: "POST",
+    body: { payment_status: paymentStatus },
+  });
+}
+
+/** Deletes every bill and resets both companies' bill-number counters back to 1. */
+export async function deleteAllBills(): Promise<void> {
+  await apiFetch<void>("/api/bills/all", { method: "DELETE" });
 }

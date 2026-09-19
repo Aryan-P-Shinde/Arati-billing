@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   bulkCreateProducts,
   createProduct,
+  deleteAllProducts,
   deleteProduct,
   findProductByName,
   getProduct,
@@ -13,6 +14,15 @@ import {
 import type { Company } from "../lib/billNumber.js";
 
 export const productsRouter = Router();
+
+productsRouter.delete("/all", async (_req, res) => {
+  try {
+    await deleteAllProducts();
+    res.status(204).send();
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : "Failed to clear products" });
+  }
+});
 
 function requireCompany(value: unknown): Company {
   if (value !== "sharangdhar" && value !== "leadgen") {

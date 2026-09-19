@@ -93,6 +93,11 @@ export async function deleteProduct(id: number): Promise<void> {
   await apiFetch<void>(`/api/products/${id}`, { method: "DELETE" });
 }
 
+/** Deletes every product in one go. Always safe — past bills keep their own item snapshots. */
+export async function deleteAllProducts(): Promise<void> {
+  await apiFetch<void>("/api/products/all", { method: "DELETE" });
+}
+
 /** Bulk CSV import (PRD sec.9) — one request instead of one per row. */
 export async function bulkCreateProducts(products: NewProduct[]): Promise<number> {
   const { count } = await apiFetch<{ count: number }>("/api/products/bulk", {

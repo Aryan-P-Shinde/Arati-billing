@@ -57,3 +57,8 @@ export async function countBillsForDoctor(id: number): Promise<number> {
 export async function deleteDoctor(id: number): Promise<void> {
   await apiFetch<void>(`/api/doctors/${id}`, { method: "DELETE" });
 }
+
+/** Deletes every doctor in one go — blocked (with a clear error) if any bills still exist. */
+export async function deleteAllDoctors(): Promise<void> {
+  await apiFetch<void>("/api/doctors/all", { method: "DELETE" });
+}

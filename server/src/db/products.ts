@@ -166,6 +166,16 @@ export async function deleteProduct(id: number): Promise<void> {
 }
 
 /**
+ * Deletes every product in one go. Always safe regardless of existing
+ * bills — bill_items.product_id is ON DELETE SET NULL and every item
+ * already carries its own name/pack/rate snapshot, so past bills are
+ * unaffected either way.
+ */
+export async function deleteAllProducts(): Promise<void> {
+  await run(`DELETE FROM products`);
+}
+
+/**
  * Inserts many products in a single transaction instead of one write per
  * row — matters once this is a 200+ row CSV import instead of a one-off add.
  */

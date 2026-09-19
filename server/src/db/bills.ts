@@ -1,4 +1,4 @@
-import { query, transaction } from "./index.js";
+import { query, run, transaction } from "./index.js";
 import { formatBillNumber, type Company } from "../lib/billNumber.js";
 
 export interface Bill {
@@ -14,6 +14,7 @@ export interface Bill {
   net_amount: number;
   remark: string | null;
   status: "draft" | "finalized";
+  payment_status: "unpaid" | "paid";
   created_at: string;
   updated_at: string;
 }
@@ -240,4 +241,46 @@ export async function listBillsForDoctor(doctorId: number, limit = 20): Promise<
     `SELECT * FROM bills WHERE doctor_id = ? ORDER BY bill_date DESC, id DESC LIMIT ?`,
     [doctorId, limit]
   );
+}
+
+export interface BillWithDoctorName extends Bill {
+  doctor_name: string;
+}
+
+/**
+ * Every bill across every doctor, newest first, with the doctor's name
+ * joined in — powers the Ledger screen. Deliberately unbounded (not
+ * paginated): an old unpaid bill is exactly the thing this screen exists
+ * to surface, so it can never silently drop off a "recent N" cutoff. At
+ * this business's scale (a few thousand bills over years) that's fine to
+ * fetch in one go.
+ */
+export async function listAllBills(): Promise<BillWithDoctorName[]> {
+  return query<BillWithDoctorName>(
+    `SELECT bills.*, doctors.name AS doctor_name
+     FROM bills
+     JOIN doctors ON doctors.id = bills.doctor_id
+     ORDER BY bills.bill_date DESC, bills.id DESC`
+  );
+}
+
+/** Marks a bill as paid or unpaid — the only thing the Ledger screen ever writes. */
+export async function setBillPaymentStatus(id: number, paymentStatus: "unpaid" | "paid"): Promise<void> {
+  await run(`UPDATE bills SET payment_status = ?, updated_at = NOW() WHERE id = ?`, [
+    paymentStatus,
+    id,
+  ]);
+}
+
+/**
+ * Deletes every bill (and their items, via cascade) and resets both
+ * companies' bill-number counters back to 1 — a fresh start, since
+ * leftover bills are usually cleared while setting up or testing, not
+ * as an ordinary cleanup.
+ */
+export async function deleteAllBills(): Promise<void> {
+  await transaction(async (client) => {
+    await client.query(`DELETE FROM bills`);
+    await client.query(`DELETE FROM bill_number_counters`);
+  });
 }

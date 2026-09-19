@@ -1,7 +1,33 @@
 import { Router } from "express";
-import { createBill, deleteBill, getBill, getBillItems, listBillsForDoctor, updateBill } from "../db/bills.js";
+import {
+  createBill,
+  deleteAllBills,
+  deleteBill,
+  getBill,
+  getBillItems,
+  listAllBills,
+  listBillsForDoctor,
+  setBillPaymentStatus,
+  updateBill,
+} from "../db/bills.js";
 
 export const billsRouter = Router();
+
+// Must come before DELETE /:id — otherwise "/all" would be captured as
+// the :id parameter instead of hitting this route.
+billsRouter.delete("/all", async (_req, res) => {
+  try {
+    await deleteAllBills();
+    res.status(204).send();
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : "Failed to clear bills" });
+  }
+});
+
+/** Every bill across every doctor, joined with the doctor's name — powers the Ledger screen. */
+billsRouter.get("/", async (_req, res) => {
+  res.json(await listAllBills());
+});
 
 billsRouter.get("/:id", async (req, res) => {
   const bill = await getBill(Number(req.params.id));
@@ -25,6 +51,17 @@ billsRouter.post("/", async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err instanceof Error ? err.message : "Failed to create bill" });
   }
+});
+
+billsRouter.post("/:id/payment-status", async (req, res) => {
+  const status = req.body?.payment_status;
+  if (status !== "paid" && status !== "unpaid") {
+    res.status(400).json({ error: "payment_status must be 'paid' or 'unpaid'" });
+    return;
+  }
+  await setBillPaymentStatus(Number(req.params.id), status);
+  const bill = await getBill(Number(req.params.id));
+  res.json(bill);
 });
 
 billsRouter.put("/:id", async (req, res) => {

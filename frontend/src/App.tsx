@@ -5,9 +5,10 @@ import { BillsScreen } from "./components/BillsScreen";
 import { ImportProductsScreen } from "./components/ImportProductsScreen";
 import { BackupScreen } from "./components/BackupScreen";
 import { ManageScreen } from "./components/ManageScreen";
+import { LedgerScreen } from "./components/LedgerScreen";
 import "./App.css";
 
-type Tab = "new" | "bills" | "products" | "manage" | "backup";
+type Tab = "new" | "bills" | "ledger" | "products" | "manage" | "backup";
 
 function PinScreen({ onUnlocked }: { onUnlocked: () => void }) {
   const [pin, setPin] = useState("");
@@ -94,6 +95,9 @@ export default function App() {
           <button className={tab === "bills" ? "tab active" : "tab"} onClick={() => setTab("bills")}>
             Bills
           </button>
+          <button className={tab === "ledger" ? "tab active" : "tab"} onClick={() => setTab("ledger")}>
+            Ledger
+          </button>
           <button className={tab === "products" ? "tab active" : "tab"} onClick={() => setTab("products")}>
             Products
           </button>
@@ -119,6 +123,8 @@ export default function App() {
           <BillForm />
         ) : tab === "bills" ? (
           <BillsScreen />
+        ) : tab === "ledger" ? (
+          <LedgerScreen />
         ) : tab === "products" ? (
           <ImportProductsScreen />
         ) : tab === "manage" ? (

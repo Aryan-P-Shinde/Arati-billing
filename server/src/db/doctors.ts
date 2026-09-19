@@ -105,3 +105,19 @@ export async function countBillsForDoctor(id: number): Promise<number> {
 export async function deleteDoctor(id: number): Promise<void> {
   await run(`DELETE FROM doctors WHERE id = ?`, [id]);
 }
+
+/**
+ * Deletes every doctor in one go — but only if no bills exist at all,
+ * since bills.doctor_id has no ON DELETE clause and a single leftover
+ * bill would make this fail with a raw FK error otherwise. Surfaces a
+ * clear message up front instead.
+ */
+export async function deleteAllDoctors(): Promise<void> {
+  const [{ count }] = await query<{ count: string }>(`SELECT COUNT(*) as count FROM bills`);
+  if (Number(count) > 0) {
+    throw new Error(
+      `Can't clear doctors — ${count} bill${Number(count) === 1 ? "" : "s"} still reference them. Clear bills first.`
+    );
+  }
+  await run(`DELETE FROM doctors`);
+}

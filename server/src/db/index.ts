@@ -35,6 +35,11 @@ async function migrate(): Promise<void> {
   if (!(await hasColumn("bills", "company"))) {
     await pool.query("ALTER TABLE bills ADD COLUMN company TEXT DEFAULT 'sharangdhar'");
   }
+  if (!(await hasColumn("bills", "payment_status"))) {
+    await pool.query(
+      "ALTER TABLE bills ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid','paid'))"
+    );
+  }
   // Idempotent — every statement in SCHEMA_SQL is IF NOT EXISTS.
   await pool.query(SCHEMA_SQL);
 }

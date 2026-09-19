@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   countBillsForDoctor,
   createDoctor,
+  deleteAllDoctors,
   deleteDoctor,
   getDoctor,
   searchDoctors,
@@ -10,6 +11,15 @@ import {
 } from "../db/doctors.js";
 
 export const doctorsRouter = Router();
+
+doctorsRouter.delete("/all", async (_req, res) => {
+  try {
+    await deleteAllDoctors();
+    res.status(204).send();
+  } catch (err) {
+    res.status(400).json({ error: err instanceof Error ? err.message : "Failed to clear doctors" });
+  }
+});
 
 doctorsRouter.get("/", async (req, res) => {
   const term = typeof req.query.q === "string" ? req.query.q : "";
